@@ -1,0 +1,29 @@
+version: '3'
+services:
+  webdav:
+    image: bytemark/webdav
+    restart: always
+    # Not needed as using Traefik
+    #ports:
+    #  - "443:443"
+    networks:
+      - web
+    environment:
+      SERVER_NAMES: webdav.leejonchapman.com
+      # Can also use DIGEST but Joplin doesnt like it
+      AUTH_TYPE: Basic
+      # GENERATE
+      USERNAME: *GENERATE*
+      PASSWORD: *GENERATE*
+    labels:
+     - "traefik.enable=true"
+     - "traefik.frontend.rule=Host:webdav.leejonchapman.com"
+     - "traefik.frontend.passHostHeader=true"
+     - "traefik.frontend.headers.SSLRedirect=true"
+       #Allow watchtower to monitor container
+     - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+     - /mnt/sync/joplin:/var/lib/dav
+networks:
+  web:
+    external: true
