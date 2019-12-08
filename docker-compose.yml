@@ -1,29 +1,32 @@
-version: '3'
+version: '3.5'
+volumes:
+  data:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.100.87,nolock,soft,rw"
+      device: ":/mnt/data/joplin"
 services:
-  webdav:
+  software:
     image: bytemark/webdav
     restart: always
-    # Not needed as using Traefik
-    #ports:
-    #  - "443:443"
     networks:
-      - web
+      - internal_routeable
     environment:
       SERVER_NAMES: webdav.leejonchapman.com
-      # Can also use DIGEST but Joplin doesnt like it
-      AUTH_TYPE: Basic
-      # GENERATE
-      USERNAME: *GENERATE*
-      PASSWORD: *GENERATE*
+      AUTH_TYPE: Digest
     labels:
-     - "traefik.enable=true"
-     - "traefik.frontend.rule=Host:webdav.leejonchapman.com"
-     - "traefik.frontend.passHostHeader=true"
-     - "traefik.frontend.headers.SSLRedirect=true"
-       #Allow watchtower to monitor container
-     - "com.centurylinklabs.watchtower.enable=true"
+       - "traefik.enable=true"
+       - "traefik.frontend.rule=Host:webdav1.leejonchapman.com"
+       - "traefik.frontend.passHostHeader=true"
+       - "traefik.frontend.headers.SSLRedirect=true"
+ # Allow watchtower to monitor container
+ ##   - "com.centurylinklabs.watchtower.enable=true"
     volumes:
-     - /mnt/sync/joplin:/var/lib/dav
+      - data:/var/lib/dav
+      - ./user.passwd:/user.passwd
+    deploy:
+      replicas: 1
 networks:
-  web:
+  internal_routeable:
+    name: internal_routeable
     external: true
