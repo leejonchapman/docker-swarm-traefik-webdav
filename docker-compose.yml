@@ -13,10 +13,11 @@ services:
       - internal_routeable
     environment:
       SERVER_NAMES: webdav.leejonchapman.com
-      AUTH_TYPE: Digest
+      # Digest - is also an option but Joplin doesnt like it
+      AUTH_TYPE: Basic
     labels:
        - "traefik.enable=true"
-       - "traefik.frontend.rule=Host:webdav1.leejonchapman.com"
+       - "traefik.frontend.rule=Host:webdav.leejonchapman.com"
        - "traefik.frontend.passHostHeader=true"
        - "traefik.frontend.headers.SSLRedirect=true"
  # Allow watchtower to monitor container
@@ -25,7 +26,7 @@ services:
       - data:/var/lib/dav
       - ./user.passwd:/user.passwd
     deploy:
-      replicas: 1
+      replicas: 3
 networks:
   internal_routeable:
     name: internal_routeable
