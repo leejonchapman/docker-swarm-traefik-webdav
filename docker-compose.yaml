@@ -1,0 +1,47 @@
+version: '3.5'
+volumes:
+  data:
+    driver_opts:
+      type: "nfs"
+      o: "addr=192.168.100.87,nolock,soft,rw"
+      device: ":/mnt/data/joplin"
+services:
+  software:
+    image: bytemark/webdav
+    restart: always
+    networks:
+      - internal
+    environment:
+      SERVER_NAMES: webdav.leejonchapman.com
+      AUTH_TYPE: Basic #There is 'Digest' too but Joplin doesnt like it
+    deploy:
+      labels:
+        traefik.enable: "true"
+        traefik.backend: "webdav"
+        traefik.docker.network: "internal"
+        traefik.web.frontend.rule: "Host:webdav.leejonchapman.com"
+        traefik.web.port: "80"
+        traefik.frontend.headers.SSLRedirect: "true"
+        traefik.frontend.headers.SSLHost: "webdav.leejonchapman.com"
+      placement:
+        constraints:
+          - node.role == worker
+      replicas: 1
+    secrets:
+      - source: joplin-user-passwd  
+        target: /user.passwd
+        uid: '0'
+        gid: '0'
+        mode: 0666
+    volumes:
+      - data:/var/lib/dav
+#     - /run/secrets/joplin-user-passwd:/user.passwd
+# touch a file called user.passwd then htpasswd -c USERNAME
+secrets:
+ joplin-user-passwd:
+   file: ./user.passwd
+   external: true
+networks:
+  internal:
+    name: internal
+    external: true
